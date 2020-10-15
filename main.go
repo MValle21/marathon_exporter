@@ -6,6 +6,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"os"
 	"time"
 
 	"github.com/matt-deboer/go-marathon"
@@ -15,17 +16,27 @@ import (
 
 var (
 	listenAddress = flag.String(
-		"web.listen-address", ":9088",
-		"Address to listen on for web interface and telemetry.")
+		"web.listen-address",
+		defaultEnv("WEB_LISTEN_ADDRESS", ":9088"),
+		"Address to listen on for web interface and telemetry. [env: WEB_LISTEN_ADDRESS]")
 
 	metricsPath = flag.String(
-		"web.telemetry-path", "/metrics",
-		"Path under which to expose metrics.")
+		"web.telemetry-path",
+		defaultEnv("WEB_TELEMETRY_PATH", "/metrics"),
+		"Path under which to expose metrics. [env: WEB_TELEMETRY_PATH]")
 
 	marathonUri = flag.String(
-		"marathon.uri", "http://marathon.mesos:8080",
-		"URI of Marathon")
+		"marathon.uri",
+		defaultEnv("MARATHON_URI", "http://marathon.mesos:8080"),
+		"URI of Marathon. [env: MARATHON_URI]")
 )
+
+func defaultEnv(envVar, defaultVal string) string {
+	if val, ok := os.LookupEnv(envVar); ok {
+		return val
+	}
+	return defaultVal
+}
 
 func marathonConnect(uri *url.URL) error {
 	config := marathon.NewDefaultConfig()
